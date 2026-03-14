@@ -1,0 +1,3 @@
+/home/subodh/Desktop/graphics_project/magnus_visualizer/build/CMakeFiles/magnus_visualizer.dir
+/home/subodh/Desktop/graphics_project/magnus_visualizer/build/CMakeFiles/edit_cache.dir
+/home/subodh/Desktop/graphics_project/magnus_visualizer/build/CMakeFiles/rebuild_cache.dir

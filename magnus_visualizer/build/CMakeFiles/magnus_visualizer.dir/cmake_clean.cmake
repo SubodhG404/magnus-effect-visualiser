@@ -1,0 +1,41 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/backends/imgui_impl_glut.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/backends/imgui_impl_glut.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/backends/imgui_impl_opengl2.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/backends/imgui_impl_opengl2.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/imgui.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/imgui.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/imgui_demo.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/imgui_demo.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/imgui_draw.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/imgui_draw.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/imgui_tables.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/imgui_tables.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/imgui_widgets.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/include/imgui/imgui_widgets.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/src/ball.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/src/ball.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/src/camera.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/src/camera.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/src/input.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/src/input.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/src/main.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/src/main.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/src/renderer.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/src/renderer.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/src/simulation.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/src/simulation.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/src/trail.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/src/trail.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/src/ui.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/src/ui.cpp.o.d"
+  "CMakeFiles/magnus_visualizer.dir/src/vectors.cpp.o"
+  "CMakeFiles/magnus_visualizer.dir/src/vectors.cpp.o.d"
+  "magnus_visualizer"
+  "magnus_visualizer.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/magnus_visualizer.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()
