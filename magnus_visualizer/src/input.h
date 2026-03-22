@@ -8,13 +8,6 @@
 #include "trail.h"
 #include <GL/glut.h>
 
-enum class SpinType {
-    TOPSPIN,
-    BACKSPIN,
-    SIDESPIN,
-    NOSPIN
-};
-
 class Input {
 public:
     Ball& ball;
@@ -23,12 +16,16 @@ public:
     Vectors& vectors;
     Trail& trail;
 
-    float initialSpeed;
     float velocityX;
     float velocityY;
     float velocityZ;
-    float angularVelocityScale;
-    SpinType currentSpinType;
+    float spinRPM;
+    float spinAxisX;
+    float spinAxisY;
+    float spinAxisZ;
+    float startPosX;
+    float startPosY;
+    float startPosZ;
 
     Input(Ball& b, Simulation& sim, Camera& cam, Vectors& v, Trail& t);
 

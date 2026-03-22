@@ -27,9 +27,13 @@ UI ui(ball, simulation, inputHandler);
 
 int windowWidth = 1280;
 int windowHeight = 720;
+int mouseX = 0;
+int mouseY = 0;
+int mouseState = 0;
+int mouseButton = 0;
 
 bool showControlPanel = true;
-bool wasRunning = false;
+bool keyStates[256] = {false};
 
 void display() {
     ImGuiIO& io = ImGui::GetIO();
@@ -37,7 +41,7 @@ void display() {
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    float uiWidth = windowWidth * 0.3f;
+    float uiWidth = windowWidth * 0.28f;
     float viewWidth = windowWidth - uiWidth;
     
     glViewport(0, 0, (int)viewWidth, windowHeight);
@@ -61,116 +65,100 @@ void display() {
     ImGui::SetNextWindowSize(ImVec2(panelWidth, panelHeight), ImGuiCond_Always);
     
     ImGui::Begin("Controls", &showControlPanel, 
-        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
     
     ImGui::SetWindowSize(ImVec2(panelWidth, panelHeight));
     
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 8));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 6));
+    
+    ImGui::SetWindowFontScale(1.2f);
     
     ImGui::Text("MAGNUS EFFECT");
     ImGui::Separator();
     
-    ImGui::Spacing();
-    ImGui::Text("Initial Velocity");
+    float w = ImGui::GetContentRegionAvail().x;
+    
+    ImGui::Text("Velocity (m/s)");
+    ImGui::InputFloat("VX", &inputHandler.velocityX, 0, 0, "%.1f");
+    ImGui::InputFloat("VY", &inputHandler.velocityY, 0, 0, "%.1f");
+    ImGui::InputFloat("VZ", &inputHandler.velocityZ, 0, 0, "%.1f");
+    
     ImGui::Separator();
-    ImGui::SliderFloat("Velocity X", &inputHandler.velocityX, 0.0f, 50.0f, "%.1f m/s");
-    ImGui::SliderFloat("Velocity Y", &inputHandler.velocityY, -20.0f, 20.0f, "%.1f m/s");
-    ImGui::SliderFloat("Velocity Z", &inputHandler.velocityZ, -30.0f, 30.0f, "%.1f m/s");
+    ImGui::Text("Spin");
+    ImGui::InputFloat("RPM", &inputHandler.spinRPM, 0, 0, "%.0f");
+    ImGui::InputFloat("Axis X", &inputHandler.spinAxisX, 0, 0, "%.2f");
+    ImGui::InputFloat("Axis Y", &inputHandler.spinAxisY, 0, 0, "%.2f");
+    ImGui::InputFloat("Axis Z", &inputHandler.spinAxisZ, 0, 0, "%.2f");
     
-    float speed = sqrtf(inputHandler.velocityX * inputHandler.velocityX + 
-                        inputHandler.velocityY * inputHandler.velocityY + 
-                        inputHandler.velocityZ * inputHandler.velocityZ);
-    ImGui::Text("Total Speed: %.2f m/s", speed);
-    
-    ImGui::Spacing();
     ImGui::Separator();
-    ImGui::Text("Ball Properties");
+    ImGui::Text("Physics");
+    ImGui::InputFloat("Mass (kg)", &ball.mass, 0, 0, "%.2f");
+    ImGui::InputFloat("Radius (m)", &ball.radius, 0, 0, "%.3f");
+    
     ImGui::Separator();
-    ImGui::SliderFloat("Mass (kg)", &ball.mass, 0.1f, 2.0f, "%.2f kg");
-    ImGui::SliderFloat("Spin Rate", &inputHandler.angularVelocityScale, 0.0f, 100.0f, "%.1f rad/s");
+    ImGui::Text("Start Position");
+    ImGui::InputFloat("X", &inputHandler.startPosX, 0, 0, "%.1f");
+    ImGui::InputFloat("Y", &inputHandler.startPosY, 0, 0, "%.1f");
+    ImGui::InputFloat("Z", &inputHandler.startPosZ, 0, 0, "%.1f");
     
-    ImGui::Spacing();
     ImGui::Separator();
-    ImGui::Text("Spin Type");
+    ImGui::Text("Simulation");
+    ImGui::InputFloat("Speed Scale", &simulation.timeScale, 0, 0, "%.1f");
+    
+    ImGui::Separator();
+    bool trailOn = trail.enabled;
+    if (ImGui::Checkbox("Show Trails", &trailOn)) trail.enabled = trailOn;
+    ImGui::Indent();
+    bool magnusTrail = trail.magnusEnabled;
+    if (ImGui::Checkbox("With Magnus", &magnusTrail)) trail.magnusEnabled = magnusTrail;
+    ImGui::Indent();
+    bool magTraj = trail.magnusTrajectoryEnabled;
+    if (ImGui::Checkbox("  Trajectory (Yellow)", &magTraj)) trail.magnusTrajectoryEnabled = magTraj;
+    bool magGround = trail.magnusGroundEnabled;
+    if (ImGui::Checkbox("  Ground (Orange)", &magGround)) trail.magnusGroundEnabled = magGround;
+    ImGui::Unindent();
+    bool refTrail = trail.referenceEnabled;
+    if (ImGui::Checkbox("Without Magnus", &refTrail)) trail.referenceEnabled = refTrail;
+    ImGui::Indent();
+    bool refTraj = trail.referenceTrajectoryEnabled;
+    if (ImGui::Checkbox("  Trajectory (Gray)", &refTraj)) trail.referenceTrajectoryEnabled = refTraj;
+    bool refGround = trail.referenceGroundEnabled;
+    if (ImGui::Checkbox("  Ground (Light)", &refGround)) trail.referenceGroundEnabled = refGround;
+    ImGui::Unindent();
+    ImGui::Unindent();
+    bool vecOn = vectors.enabled;
+    if (ImGui::Checkbox("Show Vectors", &vecOn)) vectors.enabled = vecOn;
+    
     ImGui::Separator();
     
-    const char* spinTypes[] = { "Top Spin", "Back Spin", "Side Spin", "No Spin" };
-    int currentSpin = static_cast<int>(inputHandler.currentSpinType);
-    if (ImGui::Combo("##spin", &currentSpin, spinTypes, 4)) {
-        inputHandler.currentSpinType = static_cast<SpinType>(currentSpin);
-    }
+    ImVec2 btnSize(w / 2 - 4, 40);
     
-    ImGui::Spacing();
-    ImGui::Separator();
-    
-    ImGui::Text("Simulation Speed");
-    ImGui::Separator();
-    ImGui::SliderFloat("Speed", &simulation.timeScale, 0.1f, 3.0f, "%.1fx");
-    
-    ImGui::Spacing();
-    ImGui::Separator();
-    
-    ImGui::Text("Magnus Effect");
-    ImGui::Separator();
-    ImGui::SliderFloat("Visibility", &simulation.magnusVisibility, 1.0f, 100.0f, "%.1fx");
-    
-    ImGui::Spacing();
-    ImGui::Separator();
-    
-    ImVec2 buttonSize(ImGui::GetContentRegionAvail().x / 2 - 4, 50);
-    
-    if (ImGui::Button("LAUNCH", buttonSize)) {
+    if (ImGui::Button("LAUNCH", btnSize)) {
         inputHandler.launch();
     }
     ImGui::SameLine();
-    if (ImGui::Button("RESET", buttonSize)) {
+    if (ImGui::Button("RESET", btnSize)) {
         inputHandler.reset();
     }
     
-    ImGui::Spacing();
     ImGui::Separator();
-    ImGui::Text("Visualization");
-    ImGui::Separator();
-    
-    bool vectorsEnabled = vectors.enabled;
-    if (ImGui::Checkbox("Show Force Vectors", &vectorsEnabled)) {
-        vectors.enabled = vectorsEnabled;
-    }
-    
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Text("Current State");
-    ImGui::Separator();
-    
+    ImGui::Text("State");
     if (simulation.isLaunched) {
-        ImGui::Text("Speed: %.2f m/s", simulation.getSpeed());
-        ImGui::Text("Position: (%.2f, %.2f, %.2f)", ball.position.x, ball.position.y, ball.position.z);
-        ImGui::Text("Spin: %.2f rad/s", ball.getSpinMagnitude());
-        ImGui::Text("Magnus Force: %.3f N", simulation.getMagnusForceMagnitude());
+        ImGui::Text("Speed: %.1f m/s", simulation.getSpeed());
+        ImGui::Text("Pos: (%.1f, %.1f, %.1f)", ball.position.x, ball.position.y, ball.position.z);
+        ImGui::Text("Magnus: %.3f N", simulation.getMagnusForceMagnitude());
     } else {
-        ImGui::TextColored(ImVec4(1, 1, 0, 1), "Ready to launch");
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), "Ready");
     }
     
-    ImGui::Spacing();
     ImGui::Separator();
     ImGui::Text("Legend");
-    ImGui::Separator();
-    ImGui::TextColored(ImVec4(1, 1, 0, 1), "■ With Magnus (strong)");
-    ImGui::TextColored(ImVec4(0.5, 0.5, 0.5, 1), "■ Without Magnus (weak)");
-    ImGui::TextColored(ImVec4(1, 0, 1, 1), "■ Ground Path");
-    ImGui::TextColored(ImVec4(0, 1, 0, 1), "■ Velocity");
-    ImGui::TextColored(ImVec4(1, 0, 0, 1), "■ Magnus Force");
-    ImGui::TextColored(ImVec4(0.3, 0.3, 1, 1), "■ Gravity");
+    ImGui::TextColored(ImVec4(1, 1, 0, 1), "Yellow: With Magnus");
+    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1), "Gray: Without Magnus");
+    ImGui::TextColored(ImVec4(1, 0, 0, 1), "Red: Magnus Force");
     
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Text("Camera");
-    ImGui::Separator();
-    ImGui::Text("Mouse drag: Orbit");
-    ImGui::Text("Mouse wheel: Zoom");
-    ImGui::Text("Arrow keys: Move");
-    
-    ImGui::PopStyleVar();
+    ImGui::PopStyleVar(2);
     
     ImGui::End();
     
@@ -180,16 +168,30 @@ void display() {
     glutSwapBuffers();
 }
 
+bool isMouseIn3DView() {
+    float uiWidth = windowWidth * 0.28f;
+    float viewWidth = windowWidth - uiWidth;
+    return mouseX < viewWidth;
+}
+
 void timer(int value) {
-    wasRunning = simulation.isLaunched;
-    simulation.update();
-    
     if (simulation.isLaunched) {
-        trail.addPosition(ball.position);
-        trail.addReferencePosition(simulation.referenceBall.position);
-    } else if (wasRunning && !simulation.isLaunched) {
-        trail.clear();
-        inputHandler.launch();
+        simulation.update();
+        
+        if (simulation.isLaunched) {
+            trail.addPosition(ball.position);
+            trail.addReferencePosition(simulation.referenceBall.position);
+        }
+    }
+    
+    if (!ImGui::GetIO().WantCaptureKeyboard && isMouseIn3DView()) {
+        float moveSpeed = 0.25f;
+        if (keyStates['w'] || keyStates['W']) camera.move(moveSpeed);
+        if (keyStates['s'] || keyStates['S']) camera.move(-moveSpeed);
+        if (keyStates['a'] || keyStates['A']) camera.strafe(-moveSpeed);
+        if (keyStates['d'] || keyStates['D']) camera.strafe(moveSpeed);
+        if (keyStates['q'] || keyStates['Q']) camera.moveUp(-moveSpeed);
+        if (keyStates['e'] || keyStates['E']) camera.moveUp(moveSpeed);
     }
     
     glutPostRedisplay();
@@ -200,65 +202,73 @@ void reshape(int width, int height) {
     windowWidth = width;
     windowHeight = height;
     glViewport(0, 0, width, height);
-    camera.aspect = (float)(width - width * 0.3f) / (float)height;
+    float uiWidth = width * 0.28f;
+    camera.aspect = (float)(width - uiWidth) / (float)height;
+}
+
+void keyboard(unsigned char key, int x, int y) {
+    keyStates[key] = true;
+    ImGui_ImplGLUT_KeyboardFunc(key, x, y);
+}
+
+void keyboardUp(unsigned char key, int x, int y) {
+    keyStates[key] = false;
+    ImGui_ImplGLUT_KeyboardUpFunc(key, x, y);
+}
+
+void specialKeys(int key, int x, int y) {
+    ImGui_ImplGLUT_SpecialFunc(key, x, y);
+}
+
+void specialUp(int key, int x, int y) {
+    ImGui_ImplGLUT_SpecialUpFunc(key, x, y);
 }
 
 int lastMouseX = 0;
 int lastMouseY = 0;
 bool mouseDragging = false;
 
-bool isMouseIn3DView(int x, int y) {
-    float uiWidth = windowWidth * 0.3f;
-    float viewWidth = windowWidth - uiWidth;
-    return x < viewWidth;
-}
-
 void mouse(int button, int state, int x, int y) {
-    bool in3DView = isMouseIn3DView(x, y);
+    mouseX = x;
+    mouseY = y;
+    mouseButton = button;
+    mouseState = state;
     
-    if (button == GLUT_LEFT_BUTTON) {
-        if (state == GLUT_DOWN) {
-            if (in3DView) {
-                mouseDragging = true;
-                lastMouseX = x;
-                lastMouseY = y;
-            }
-        } else if (state == GLUT_UP) {
-            mouseDragging = false;
-        }
+    ImGui_ImplGLUT_MouseFunc(button, state, x, y);
+    
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN && isMouseIn3DView()) {
+        mouseDragging = true;
+        lastMouseX = x;
+        lastMouseY = y;
+    } else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+        mouseDragging = false;
+    } else if (button == GLUT_RIGHT_BUTTON) {
+        mouseDragging = false;
     }
     
-    if (in3DView) {
-        if (button == 3 && state == GLUT_DOWN) {
-            camera.zoom(-1.0f);
-        }
-        if (button == 4 && state == GLUT_DOWN) {
-            camera.zoom(1.0f);
-        }
-    } else {
-        ImGui_ImplGLUT_MouseFunc(button, state, x, y);
-    }
 }
 
 void mouseMotion(int x, int y) {
-    if (mouseDragging && isMouseIn3DView(x, y)) {
+    mouseX = x;
+    mouseY = y;
+    
+    ImGui_ImplGLUT_MotionFunc(x, y);
+    
+    if (mouseDragging && isMouseIn3DView()) {
         int dx = x - lastMouseX;
         int dy = y - lastMouseY;
         inputHandler.handleMouseDrag(dx, dy);
         lastMouseX = x;
         lastMouseY = y;
-    } else if (!isMouseIn3DView(x, y)) {
-        ImGui_ImplGLUT_MotionFunc(x, y);
     }
 }
 
-void keyboard(unsigned char key, int x, int y) {
-    ImGui_ImplGLUT_KeyboardFunc(key, x, y);
-}
-
-void specialKeys(int key, int x, int y) {
-    inputHandler.handleSpecialKey(key, x, y);
-    ImGui_ImplGLUT_SpecialFunc(key, x, y);
+void passiveMouseMotion(int x, int y) {
+    mouseX = x;
+    mouseY = y;
+    ImGui_ImplGLUT_MotionFunc(x, y);
+    lastMouseX = x;
+    lastMouseY = y;
 }
 
 int main(int argc, char** argv) {
@@ -277,9 +287,12 @@ int main(int argc, char** argv) {
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
+    glutKeyboardUpFunc(keyboardUp);
     glutSpecialFunc(specialKeys);
+    glutSpecialUpFunc(specialUp);
     glutMouseFunc(mouse);
     glutMotionFunc(mouseMotion);
+    glutPassiveMotionFunc(passiveMouseMotion);
     
     reshape(windowWidth, windowHeight);
     
@@ -287,9 +300,11 @@ int main(int argc, char** argv) {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     io.DisplaySize = ImVec2((float)windowWidth, (float)windowHeight);
-    (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
     
     ImGui::StyleColorsDark();
+    ImGui::GetStyle().WindowRounding = 0.0f;
     
     ImGui_ImplGLUT_Init();
     ImGui_ImplOpenGL2_Init();

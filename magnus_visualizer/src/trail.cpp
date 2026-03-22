@@ -2,7 +2,9 @@
 #include <GL/gl.h>
 #include <glm/glm.hpp>
 
-Trail::Trail() {
+Trail::Trail() : enabled(true), magnusEnabled(true), referenceEnabled(true),
+                 magnusTrajectoryEnabled(true), magnusGroundEnabled(true),
+                 referenceTrajectoryEnabled(true), referenceGroundEnabled(true) {
 }
 
 void Trail::addPosition(const glm::vec3& pos) {
@@ -25,55 +27,57 @@ void Trail::clear() {
 }
 
 void Trail::draw() {
+    if (!enabled) return;
     if (positions.empty() && referencePositions.empty()) return;
     
     glDisable(GL_LIGHTING);
     
-    // Draw reference path (without Magnus) - gray, low opacity, dashed
-    if (!referencePositions.empty()) {
-        glEnable(GL_LINE_STIPPLE);
-        glLineStipple(2, 0x00FF);
-        glBegin(GL_LINE_STRIP);
-        for (size_t i = 0; i < referencePositions.size(); ++i) {
-            float alpha = 0.3f * (1.0f - (float)i / (float)referencePositions.size());
-            glColor4f(0.5f, 0.5f, 0.5f, alpha);
-            const glm::vec3& p = referencePositions[i];
-            glVertex3f(p.x, p.y, p.z);
+    if (referenceEnabled && !referencePositions.empty()) {
+        if (referenceTrajectoryEnabled) {
+            glBegin(GL_LINE_STRIP);
+            for (size_t i = 0; i < referencePositions.size(); ++i) {
+                float alpha = 1.0f - (float)i / (float)referencePositions.size();
+                glColor4f(0.4f, 0.4f, 0.4f, alpha);
+                const glm::vec3& p = referencePositions[i];
+                glVertex3f(p.x, p.y, p.z);
+            }
+            glEnd();
         }
-        glEnd();
-        glDisable(GL_LINE_STIPPLE);
         
-        // Ground projection for reference
-        glBegin(GL_LINE_STRIP);
-        for (size_t i = 0; i < referencePositions.size(); ++i) {
-            float alpha = 0.2f * (1.0f - (float)i / (float)referencePositions.size());
-            glColor4f(0.5f, 0.5f, 0.5f, alpha);
-            const glm::vec3& p = referencePositions[i];
-            glVertex3f(p.x, 0.01f, p.z);
+        if (referenceGroundEnabled) {
+            glBegin(GL_LINE_STRIP);
+            for (size_t i = 0; i < referencePositions.size(); ++i) {
+                float alpha = 0.4f * (1.0f - (float)i / (float)referencePositions.size());
+                glColor4f(0.8f, 0.8f, 0.8f, alpha);
+                const glm::vec3& p = referencePositions[i];
+                glVertex3f(p.x, 0.02f, p.z);
+            }
+            glEnd();
         }
-        glEnd();
     }
     
-    // Draw actual path (with Magnus) - yellow, high opacity
-    if (!positions.empty()) {
-        glBegin(GL_LINE_STRIP);
-        for (size_t i = 0; i < positions.size(); ++i) {
-            float alpha = 1.0f - (float)i / (float)positions.size();
-            glColor4f(1.0f, 1.0f, 0.0f, alpha);
-            const glm::vec3& p = positions[i];
-            glVertex3f(p.x, p.y, p.z);
+    if (magnusEnabled && !positions.empty()) {
+        if (magnusTrajectoryEnabled) {
+            glBegin(GL_LINE_STRIP);
+            for (size_t i = 0; i < positions.size(); ++i) {
+                float alpha = 1.0f - (float)i / (float)positions.size();
+                glColor4f(1.0f, 0.8f, 0.0f, alpha);
+                const glm::vec3& p = positions[i];
+                glVertex3f(p.x, p.y, p.z);
+            }
+            glEnd();
         }
-        glEnd();
         
-        // Ground projection for actual path
-        glBegin(GL_LINE_STRIP);
-        for (size_t i = 0; i < positions.size(); ++i) {
-            float alpha = 0.7f * (1.0f - (float)i / (float)positions.size());
-            glColor4f(1.0f, 0.0f, 1.0f, alpha);
-            const glm::vec3& p = positions[i];
-            glVertex3f(p.x, 0.01f, p.z);
+        if (magnusGroundEnabled) {
+            glBegin(GL_LINE_STRIP);
+            for (size_t i = 0; i < positions.size(); ++i) {
+                float alpha = 0.7f * (1.0f - (float)i / (float)positions.size());
+                glColor4f(1.0f, 0.6f, 0.2f, alpha);
+                const glm::vec3& p = positions[i];
+                glVertex3f(p.x, 0.02f, p.z);
+            }
+            glEnd();
         }
-        glEnd();
     }
     
     glEnable(GL_LIGHTING);

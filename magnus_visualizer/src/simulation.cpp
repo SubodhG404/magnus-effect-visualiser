@@ -10,7 +10,7 @@ Simulation::Simulation(Ball& b) : ball(b),
                                    airDensity(1.225f), 
                                    dt(1.0f/60.0f), 
                                    timeScale(1.0f),
-                                   magnusVisibility(1.0f),
+                                   airViscosity(1.81e-5f),
                                    isLaunched(false), 
                                    showReference(true),
                                    debugFirstFrame(true) {
@@ -23,6 +23,25 @@ Simulation::Simulation(Ball& b) : ball(b),
     referenceBall.radius = ball.radius;
 }
 
+float Simulation::calculateDragCoefficient(float velocityMagnitude) {
+    float reynoldsNumber = (2.0f * ball.radius * airDensity * velocityMagnitude) / airViscosity;
+    if (reynoldsNumber < 1.0f) return 24.0f / reynoldsNumber;
+    if (reynoldsNumber < 1000.0f) return 24.0f / reynoldsNumber + 0.4f;
+    if (reynoldsNumber < 200000.0f) {
+        float cd = 0.5f * (1.0f - std::tanh(0.2f * (std::log10(reynoldsNumber) - 2.0f)));
+        if (cd < 0.2f) cd = 0.2f;
+        return cd;
+    }
+    return 0.4f;
+}
+
+float Simulation::calculateLiftCoefficient(float spinMagnitude, float velocityMagnitude) {
+    float spinParameter = (ball.radius * spinMagnitude) / velocityMagnitude;
+    float cl = 0.4f * spinParameter;
+    if (cl > 0.6f) cl = 0.6f;
+    return cl;
+}
+
 void Simulation::reset() {
     ball.reset();
     isLaunched = false;
@@ -30,6 +49,7 @@ void Simulation::reset() {
     currentDragForce = glm::vec3(0.0f);
     currentGravityForce = glm::vec3(0.0f);
     referenceVelocity = glm::vec3(0.0f);
+    referenceBall.reset();
 }
 
 void Simulation::launch(float initialSpeed, const glm::vec3& spin) {
@@ -49,7 +69,7 @@ void Simulation::launchWithVelocity(const glm::vec3& velocity, const glm::vec3& 
     referenceBall.copyFrom(ball);
     referenceBall.mass = ball.mass;
     referenceBall.radius = ball.radius;
-    referenceBall.angularVelocity = glm::vec3(0.0f); // No spin for reference
+    referenceBall.angularVelocity = glm::vec3(0.0f);
     debugFirstFrame = true;
 }
 
@@ -61,16 +81,13 @@ void Simulation::update() {
     
     currentGravityForce = ball.mass * gravity;
     
-    // Magnus Force
     glm::vec3 magnusForce = glm::vec3(0.0f);
     if (velocityMagnitude > 0.01f && spinMagnitude > 0.01f) {
-        glm::vec3 crossProduct = glm::cross(ball.velocity, ball.angularVelocity);
+        glm::vec3 crossProduct = glm::cross(ball.angularVelocity, ball.velocity);
         
         float crossSectionalArea = 3.14159f * ball.radius * ball.radius;
-        float spinParameter = (ball.radius * spinMagnitude) / velocityMagnitude;
-        float Cl = 0.25f * spinParameter;
+        float Cl = calculateLiftCoefficient(spinMagnitude, velocityMagnitude);
         float magnusMagnitude = 0.5f * airDensity * crossSectionalArea * Cl * velocityMagnitude * velocityMagnitude;
-        magnusMagnitude *= magnusVisibility;
         
         if (glm::length(crossProduct) > 0.001f) {
             magnusForce = glm::normalize(crossProduct) * magnusMagnitude;
@@ -78,11 +95,9 @@ void Simulation::update() {
     }
     currentMagnusForce = magnusForce;
     
-    // Drag Force: F = 0.5 * ρ * A * Cd * v^2
-    // Simplified with constant Cd for stability
     glm::vec3 dragForce = glm::vec3(0.0f);
     if (velocityMagnitude > 0.01f) {
-        float Cd = 0.3f; // Very low drag for visibility
+        float Cd = calculateDragCoefficient(velocityMagnitude);
         float crossSectionalArea = 3.14159f * ball.radius * ball.radius;
         float dragMagnitude = 0.5f * airDensity * crossSectionalArea * Cd * velocityMagnitude * velocityMagnitude;
         dragForce = -glm::normalize(ball.velocity) * dragMagnitude;
@@ -97,16 +112,16 @@ void Simulation::update() {
     ball.position += ball.velocity * scaledDt;
     ball.updateRotation(scaledDt);
     
-    // Update reference ball (without Magnus force)
     float refVelMag = glm::length(referenceBall.velocity);
     glm::vec3 refDragForce = glm::vec3(0.0f);
     if (refVelMag > 0.01f) {
-        float Cd = 0.3f;
+        float Cd = calculateDragCoefficient(refVelMag);
         float crossSectionalArea = 3.14159f * referenceBall.radius * referenceBall.radius;
         float dragMagnitude = 0.5f * airDensity * crossSectionalArea * Cd * refVelMag * refVelMag;
         refDragForce = -glm::normalize(referenceBall.velocity) * dragMagnitude;
     }
-    glm::vec3 refTotalForce = currentGravityForce + refDragForce;
+    glm::vec3 refGravityForce = referenceBall.mass * gravity;
+    glm::vec3 refTotalForce = refGravityForce + refDragForce;
     glm::vec3 refAcceleration = refTotalForce / referenceBall.mass;
     referenceBall.velocity += refAcceleration * scaledDt;
     referenceBall.position += referenceBall.velocity * scaledDt;

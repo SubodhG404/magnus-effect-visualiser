@@ -5,24 +5,25 @@
 
 class Camera {
 public:
+    glm::vec3 position;
+    glm::vec3 forward;
+    glm::vec3 right;
+    glm::vec3 up;
     float fov;
     float aspect;
     float nearPlane;
     float farPlane;
-    
-    float azimuth;
-    float elevation;
-    float distance;
-    glm::vec3 target;
-    glm::vec3 position;
 
     Camera();
 
     void apply();
-    void orbit(float deltaAzimuth, float deltaElevation);
-    void zoom(float delta);
-    void pan(float deltaX, float deltaZ);
-    void setTarget(const glm::vec3& t);
+    void rotate(float yaw, float pitch);
+    void move(float amount);
+    void strafe(float amount);
+    void moveUp(float amount);
+    void handleMouseMove(int dx, int dy);
+    void toggleMouseLook();
+    bool mouseLookEnabled;
 };
 
 #endif

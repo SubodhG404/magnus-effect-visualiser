@@ -1,3 +1,4 @@
+#define _USE_MATH_DEFINES
 #include "camera.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -5,8 +6,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
 
-Camera::Camera() : fov(45.0f), aspect(16.0f/9.0f), nearPlane(0.1f), farPlane(100.0f),
-                   azimuth(45.0f), elevation(30.0f), distance(15.0f), target(0.0f, 0.5f, 0.0f), position(0.0f, 0.5f, 0.0f) {
+Camera::Camera() : fov(45.0f), aspect(16.0f/9.0f), nearPlane(0.1f), farPlane(500.0f), mouseLookEnabled(true) {
+    position = glm::vec3(-10.0f, 3.0f, 30.0f);
+    forward = glm::vec3(0.0f, 0.0f, -1.0f);
+    right = glm::vec3(1.0f, 0.0f, 0.0f);
+    up = glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
 void Camera::apply() {
@@ -14,38 +18,42 @@ void Camera::apply() {
     glLoadIdentity();
     gluPerspective(fov, aspect, nearPlane, farPlane);
 
-    float azimuthRad = azimuth * 3.14159f / 180.0f;
-    float elevationRad = elevation * 3.14159f / 180.0f;
-
-    float eyeX = target.x + distance * cos(elevationRad) * sin(azimuthRad);
-    float eyeY = target.y + distance * sin(elevationRad);
-    float eyeZ = target.z + distance * cos(elevationRad) * cos(azimuthRad);
-
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(eyeX, eyeY, eyeZ, target.x, target.y, target.z, 0.0f, 1.0f, 0.0f);
+    gluLookAt(position.x, position.y, position.z,
+              position.x + forward.x, position.y + forward.y, position.z + forward.z,
+              up.x, up.y, up.z);
 }
 
-void Camera::orbit(float deltaAzimuth, float deltaElevation) {
-    azimuth += deltaAzimuth;
-    elevation += deltaElevation;
-    if (elevation > 89.0f) elevation = 89.0f;
-    if (elevation < -89.0f) elevation = -89.0f;
+void Camera::rotate(float yaw, float pitch) {
+    float yawRad = yaw * static_cast<float>(M_PI) / 180.0f;
+    float pitchRad = pitch * static_cast<float>(M_PI) / 180.0f;
+    
+    glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), yawRad, up) * glm::rotate(glm::mat4(1.0f), pitchRad, right);
+    forward = glm::normalize(rotation * glm::vec4(forward, 0.0f));
+    right = glm::normalize(glm::cross(forward, up));
 }
 
-void Camera::zoom(float delta) {
-    distance += delta;
-    if (distance < 2.0f) distance = 2.0f;
-    if (distance > 50.0f) distance = 50.0f;
+void Camera::move(float amount) {
+    position += forward * amount;
+    if (position.y < 0.5f) position.y = 0.5f;
 }
 
-void Camera::pan(float deltaX, float deltaZ) {
-    target.x += deltaX;
-    target.z += deltaZ;
-    position.x += deltaX;
-    position.z += deltaZ;
+void Camera::strafe(float amount) {
+    position += right * amount;
+    if (position.y < 0.5f) position.y = 0.5f;
 }
 
-void Camera::setTarget(const glm::vec3& t) {
-    target = t;
+void Camera::moveUp(float amount) {
+    position.y += amount;
+    if (position.y < 0.5f) position.y = 0.5f;
+}
+
+void Camera::handleMouseMove(int dx, int dy) {
+    if (!mouseLookEnabled) return;
+    rotate(dx * 0.1f, dy * 0.1f);
+}
+
+void Camera::toggleMouseLook() {
+    mouseLookEnabled = !mouseLookEnabled;
 }

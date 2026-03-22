@@ -2,23 +2,42 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <glm/glm.hpp>
+#include <cmath>
 
 Renderer::Renderer(Ball& b, Simulation& sim, Vectors& v, Trail& t) : ball(b), simulation(sim), vectors(v), trail(t) {
 }
 
 void Renderer::drawGround() {
     glPushMatrix();
-    glColor3f(0.3f, 0.5f, 0.3f);
+    glDisable(GL_LIGHTING);
+    
+    glColor3f(0.15f, 0.35f, 0.15f);
+    glBegin(GL_QUADS);
+    glVertex3f(-50.0f, 0.0f, -50.0f);
+    glVertex3f(50.0f, 0.0f, -50.0f);
+    glVertex3f(50.0f, 0.0f, 50.0f);
+    glVertex3f(-50.0f, 0.0f, 50.0f);
+    glEnd();
+    
+    glColor3f(0.3f, 0.3f, 0.3f);
     glBegin(GL_LINES);
-    float gridSize = 20.0f;
-    float gridStep = 1.0f;
-    for (float i = -gridSize; i <= gridSize; i += gridStep) {
-        glVertex3f(i, 0.0f, -gridSize);
-        glVertex3f(i, 0.0f, gridSize);
-        glVertex3f(-gridSize, 0.0f, i);
-        glVertex3f(gridSize, 0.0f, i);
+    for (int i = -50; i <= 50; i += 5) {
+        glVertex3f(i, 0.01f, -50.0f);
+        glVertex3f(i, 0.01f, 50.0f);
+        glVertex3f(-50.0f, 0.01f, i);
+        glVertex3f(50.0f, 0.01f, i);
     }
     glEnd();
+    
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glLineWidth(2.0f);
+    glBegin(GL_LINES);
+    glVertex3f(0.0f, 0.01f, -50.0f);
+    glVertex3f(0.0f, 0.01f, 50.0f);
+    glEnd();
+    glLineWidth(1.0f);
+    
+    glEnable(GL_LIGHTING);
     glPopMatrix();
 }
 
@@ -31,17 +50,17 @@ void Renderer::drawBall() {
         glRotatef(ball.rotationAngle, axis.x, axis.y, axis.z);
     }
     
-    GLfloat matAmbient[] = {0.8f, 0.1f, 0.1f, 1.0f};
-    GLfloat matDiffuse[] = {0.8f, 0.1f, 0.1f, 1.0f};
-    GLfloat matSpecular[] = {0.5f, 0.5f, 0.5f, 1.0f};
-    GLfloat matShininess[] = {50.0f};
+    GLfloat white[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    GLfloat black[] = {0.1f, 0.1f, 0.1f, 1.0f};
+    GLfloat shininess[] = {50.0f};
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, matAmbient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, matDiffuse);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, matSpecular);
-    glMaterialfv(GL_FRONT, GL_SHININESS, matShininess);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, white);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, white);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, black);
+    glMaterialfv(GL_FRONT, GL_SHININESS, shininess);
     
     glutSolidSphere(ball.radius, 32, 32);
+    
     glPopMatrix();
 }
 

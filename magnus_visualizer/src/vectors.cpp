@@ -11,6 +11,7 @@ Vectors::Vectors() : enabled(true) {
 
 void Vectors::drawArrow(const glm::vec3& start, const glm::vec3& direction, const glm::vec3& color, float magnitude) {
     if (magnitude < 0.001f) return;
+    if (glm::length(direction) < 0.001f) return;
     
     glm::vec3 dirVec = glm::normalize(direction);
     float length = magnitude * 0.5f;

@@ -12,7 +12,7 @@ public:
     float airDensity;
     float dt;
     float timeScale;
-    float magnusVisibility;
+    float airViscosity;
     
     glm::vec3 gravity;
     glm::vec3 currentMagnusForce;

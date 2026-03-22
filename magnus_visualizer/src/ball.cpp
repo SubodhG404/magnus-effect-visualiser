@@ -3,8 +3,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 
-Ball::Ball() : mass(0.45f), radius(0.11f), rotationAngle(0.0f) {
-    reset();
+Ball::Ball() : mass(0.43f), radius(0.11f), rotationAngle(0.0f) {
+    position = glm::vec3(0.0f, 0.11f, 0.0f);
+    velocity = glm::vec3(0.0f);
+    angularVelocity = glm::vec3(0.0f);
+    rotationAngle = 0.0f;
+    rotationAxis = glm::vec3(1.0f, 0.0f, 0.0f);
 }
 
 void Ball::reset() {
