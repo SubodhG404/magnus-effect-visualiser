@@ -6,6 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
 
+// Default camera: positioned to view ball from behind/side, looking toward origin
 Camera::Camera() : fov(45.0f), aspect(16.0f/9.0f), nearPlane(0.1f), farPlane(500.0f), mouseLookEnabled(true) {
     position = glm::vec3(-10.0f, 3.0f, 30.0f);
     forward = glm::vec3(0.0f, 0.0f, -1.0f);

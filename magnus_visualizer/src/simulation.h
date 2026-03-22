@@ -18,10 +18,7 @@ public:
     glm::vec3 currentMagnusForce;
     glm::vec3 currentDragForce;
     glm::vec3 currentGravityForce;
-    glm::vec3 referenceVelocity;
     bool isLaunched;
-    bool showReference;
-    bool debugFirstFrame;
 
     Simulation(Ball& b);
 

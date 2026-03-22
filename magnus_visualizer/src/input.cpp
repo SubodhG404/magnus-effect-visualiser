@@ -1,7 +1,8 @@
 #include "input.h"
 #include <glm/glm.hpp>
-#include <iostream>
 
+// Default values: 35 m/s forward, 4 m/s up, 8 m/s sideways (typical free kick)
+// Spin: 700 RPM with slight tilt for curve
 Input::Input(Ball& b, Simulation& sim, Camera& cam, Vectors& v, Trail& t) 
     : ball(b), simulation(sim), camera(cam), vectors(v), trail(t),
       velocityX(35.0f), velocityY(4.0f), velocityZ(8.0f),
@@ -68,8 +69,6 @@ void Input::launch() {
     ball.position = glm::vec3(startPosX, startPosY, startPosZ);
     glm::vec3 velocity(velocityX, velocityY, velocityZ);
     glm::vec3 spin = getCurrentSpin();
-    std::cout << "Launching with RPM: " << spinRPM << ", axis: (" << spinAxisX << "," << spinAxisY << "," << spinAxisZ << ")" << std::endl;
-    std::cout << "Spin vector: (" << spin.x << "," << spin.y << "," << spin.z << ")" << std::endl;
     simulation.launchWithVelocity(velocity, spin);
 }
 
