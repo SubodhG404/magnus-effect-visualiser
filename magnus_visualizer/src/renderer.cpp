@@ -29,14 +29,6 @@ void Renderer::drawGround() {
     }
     glEnd();
     
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glLineWidth(2.0f);
-    glBegin(GL_LINES);
-    glVertex3f(0.0f, 0.01f, -50.0f);
-    glVertex3f(0.0f, 0.01f, 50.0f);
-    glEnd();
-    glLineWidth(1.0f);
-    
     glEnable(GL_LIGHTING);
     glPopMatrix();
 }
