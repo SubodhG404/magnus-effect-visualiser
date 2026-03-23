@@ -17,13 +17,16 @@ public:
     Camera();
 
     void apply();
+
     void rotate(float yaw, float pitch);
+
     void move(float amount);
+
     void strafe(float amount);
+
     void moveUp(float amount);
+
     void handleMouseMove(int dx, int dy);
-    void toggleMouseLook();
-    bool mouseLookEnabled;
 };
 
 #endif

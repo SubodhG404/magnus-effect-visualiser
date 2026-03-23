@@ -7,10 +7,9 @@
 #include "simulation.h"
 #include "camera.h"
 #include "renderer.h"
-#include "vectors.h"
 #include "trail.h"
 #include "input.h"
-#include "ui.h"
+#include "controlpanel.h"
 
 #include "imgui.h"
 #include "imgui_impl_glut.h"
@@ -19,20 +18,16 @@
 Ball ball;
 Simulation simulation(ball);
 Camera camera;
-Vectors vectors;
 Trail trail;
-Input inputHandler(ball, simulation, camera, vectors, trail);
-Renderer renderer(ball, simulation, vectors, trail);
-UI ui(ball, simulation, inputHandler);
+Input inputHandler(ball, simulation, camera, trail);
+Renderer renderer(ball, simulation, trail);
+ControlPanel controlPanel(ball, simulation, inputHandler, trail);
 
 int windowWidth = 1280;
 int windowHeight = 720;
 int mouseX = 0;
 int mouseY = 0;
-int mouseState = 0;
-int mouseButton = 0;
 
-bool showControlPanel = true;
 bool keyStates[256] = {false};
 
 void display() {
@@ -56,111 +51,7 @@ void display() {
     
     ImGui::NewFrame();
     
-    float panelX = viewWidth + 5;
-    float panelWidth = uiWidth - 15;
-    float panelHeight = windowHeight - 20;
-    float panelY = 10;
-    
-    ImGui::SetNextWindowPos(ImVec2(panelX, panelY), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(panelWidth, panelHeight), ImGuiCond_Always);
-    
-    ImGui::Begin("Controls", &showControlPanel, 
-        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar);
-    
-    ImGui::SetWindowSize(ImVec2(panelWidth, panelHeight));
-    
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 8));
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6, 6));
-    
-    ImGui::SetWindowFontScale(1.2f);
-    
-    ImGui::Text("MAGNUS EFFECT");
-    ImGui::Separator();
-    
-    float w = ImGui::GetContentRegionAvail().x;
-    
-    ImGui::Text("Velocity (m/s)");
-    ImGui::InputFloat("VX", &inputHandler.velocityX, 0, 0, "%.1f");
-    ImGui::InputFloat("VY", &inputHandler.velocityY, 0, 0, "%.1f");
-    ImGui::InputFloat("VZ", &inputHandler.velocityZ, 0, 0, "%.1f");
-    
-    ImGui::Separator();
-    ImGui::Text("Spin");
-    ImGui::InputFloat("RPM", &inputHandler.spinRPM, 0, 0, "%.0f");
-    ImGui::InputFloat("Axis X", &inputHandler.spinAxisX, 0, 0, "%.2f");
-    ImGui::InputFloat("Axis Y", &inputHandler.spinAxisY, 0, 0, "%.2f");
-    ImGui::InputFloat("Axis Z", &inputHandler.spinAxisZ, 0, 0, "%.2f");
-    
-    ImGui::Separator();
-    ImGui::Text("Physics");
-    ImGui::InputFloat("Mass (kg)", &ball.mass, 0, 0, "%.2f");
-    ImGui::InputFloat("Radius (m)", &ball.radius, 0, 0, "%.3f");
-    
-    ImGui::Separator();
-    ImGui::Text("Start Position");
-    ImGui::InputFloat("X", &inputHandler.startPosX, 0, 0, "%.1f");
-    ImGui::InputFloat("Y", &inputHandler.startPosY, 0, 0, "%.1f");
-    ImGui::InputFloat("Z", &inputHandler.startPosZ, 0, 0, "%.1f");
-    
-    ImGui::Separator();
-    ImGui::Text("Simulation");
-    ImGui::InputFloat("Speed Scale", &simulation.timeScale, 0, 0, "%.1f");
-    
-    ImGui::Separator();
-    bool trailOn = trail.enabled;
-    if (ImGui::Checkbox("Show Trails", &trailOn)) trail.enabled = trailOn;
-    ImGui::Indent();
-    bool magnusTrail = trail.magnusEnabled;
-    if (ImGui::Checkbox("With Magnus", &magnusTrail)) trail.magnusEnabled = magnusTrail;
-    ImGui::Indent();
-    bool magTraj = trail.magnusTrajectoryEnabled;
-    if (ImGui::Checkbox("  Trajectory (Yellow)", &magTraj)) trail.magnusTrajectoryEnabled = magTraj;
-    bool magGround = trail.magnusGroundEnabled;
-    if (ImGui::Checkbox("  Ground (Orange)", &magGround)) trail.magnusGroundEnabled = magGround;
-    ImGui::Unindent();
-    bool refTrail = trail.referenceEnabled;
-    if (ImGui::Checkbox("Without Magnus", &refTrail)) trail.referenceEnabled = refTrail;
-    ImGui::Indent();
-    bool refTraj = trail.referenceTrajectoryEnabled;
-    if (ImGui::Checkbox("  Trajectory (Gray)", &refTraj)) trail.referenceTrajectoryEnabled = refTraj;
-    bool refGround = trail.referenceGroundEnabled;
-    if (ImGui::Checkbox("  Ground (Light)", &refGround)) trail.referenceGroundEnabled = refGround;
-    ImGui::Unindent();
-    ImGui::Unindent();
-    bool vecOn = vectors.enabled;
-    if (ImGui::Checkbox("Show Vectors", &vecOn)) vectors.enabled = vecOn;
-    
-    ImGui::Separator();
-    
-    ImVec2 btnSize(w / 2 - 4, 40);
-    
-    if (ImGui::Button("LAUNCH", btnSize)) {
-        inputHandler.launch();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("RESET", btnSize)) {
-        inputHandler.reset();
-    }
-    
-    ImGui::Separator();
-    ImGui::Text("State");
-    if (simulation.isLaunched) {
-        ImGui::Text("Speed: %.1f m/s", simulation.getSpeed());
-        ImGui::Text("Pos: (%.1f, %.1f, %.1f)", ball.position.x, ball.position.y, ball.position.z);
-        ImGui::Text("Magnus: %.3f N", simulation.getMagnusForceMagnitude());
-    } else {
-        ImGui::TextColored(ImVec4(1, 1, 0, 1), "Ready");
-    }
-    
-    ImGui::Separator();
-    ImGui::Text("Legend");
-    ImGui::TextColored(ImVec4(1, 1, 0, 1), "Yellow: With Magnus");
-    ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1), "Gray: Without Magnus");
-    ImGui::TextColored(ImVec4(1, 0, 0, 1), "Red: Magnus Force");
-    
-    ImGui::PopStyleVar(2);
-    
-    ImGui::End();
+    controlPanel.draw(uiWidth, windowWidth, windowHeight);
     
     ImGui::Render();
     ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
@@ -231,8 +122,6 @@ bool mouseDragging = false;
 void mouse(int button, int state, int x, int y) {
     mouseX = x;
     mouseY = y;
-    mouseButton = button;
-    mouseState = state;
     
     ImGui_ImplGLUT_MouseFunc(button, state, x, y);
     

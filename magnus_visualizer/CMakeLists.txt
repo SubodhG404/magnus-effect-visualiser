@@ -19,6 +19,7 @@ set(SOURCES
     src/renderer.cpp
     src/trail.cpp
     src/input.cpp
+    src/controlpanel.cpp
 )
 
 set(IMGUI_SOURCES
