@@ -1,7 +1,5 @@
 #include <GL/glut.h>
 #include <iostream>
-#include <cstring>
-#include <cmath>
 
 #include "ball.h"
 #include "simulation.h"
