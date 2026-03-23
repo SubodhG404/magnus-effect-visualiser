@@ -17,10 +17,8 @@ set(SOURCES
     src/simulation.cpp
     src/camera.cpp
     src/renderer.cpp
-    src/vectors.cpp
     src/trail.cpp
     src/input.cpp
-    src/ui.cpp
 )
 
 set(IMGUI_SOURCES

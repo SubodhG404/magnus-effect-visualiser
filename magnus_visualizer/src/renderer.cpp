@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <cmath>
 
-Renderer::Renderer(Ball& b, Simulation& sim, Vectors& v, Trail& t) : ball(b), simulation(sim), vectors(v), trail(t) {
+Renderer::Renderer(Ball& b, Simulation& sim, Trail& t) : ball(b), simulation(sim), trail(t) {
 }
 
 void Renderer::drawGround() {
@@ -73,8 +73,4 @@ void Renderer::draw() {
     drawGround();
     trail.draw();
     drawBall();
-    
-    if (simulation.isLaunched) {
-        vectors.draw(ball.position, ball.velocity, simulation.currentMagnusForce, simulation.currentGravityForce);
-    }
 }
