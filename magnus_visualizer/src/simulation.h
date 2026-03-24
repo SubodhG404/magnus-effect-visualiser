@@ -23,15 +23,17 @@ public:
     Simulation(Ball& b);
 
     void reset();
-    void launch(float initialSpeed, const glm::vec3& spin);
+    void resetToPosition(const glm::vec3& startPosition);
     void launchWithVelocity(const glm::vec3& velocity, const glm::vec3& spin);
+
     void update();
     
     float calculateLiftCoefficient(float spinMagnitude, float velocityMagnitude);
+    
     float calculateDragCoefficient(float velocityMagnitude);
     
     float getMagnusForceMagnitude() const;
-    float getDragForceMagnitude() const;
+    
     float getSpeed() const;
 };
 

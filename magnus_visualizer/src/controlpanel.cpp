@@ -55,6 +55,12 @@ void ControlPanel::draw(float uiWidth, float totalWindowWidth, float windowHeigh
     ImGui::InputFloat("Y", &input.startPosY, 0, 0, "%.1f");
     ImGui::InputFloat("Z", &input.startPosZ, 0, 0, "%.1f");
 
+    if (!simulation.isLaunched) {
+        glm::vec3 newPos(input.startPosX, input.startPosY, input.startPosZ);
+        ball.position = newPos;
+        simulation.referenceBall.position = newPos;
+    }
+
     ImGui::Separator();
     ImGui::Text("Simulation");
     ImGui::InputFloat("Speed Scale", &simulation.timeScale, 0, 0, "%.1f");

@@ -7,8 +7,10 @@
 class Trail {
 public:
     static const size_t MAX_POINTS = 2000;
+    
     std::deque<glm::vec3> positions;
     std::deque<glm::vec3> referencePositions;
+    
     bool enabled;
     bool magnusEnabled;
     bool referenceEnabled;
@@ -20,8 +22,11 @@ public:
     Trail();
 
     void addPosition(const glm::vec3& pos);
+
     void addReferencePosition(const glm::vec3& pos);
+
     void clear();
+
     void draw();
 };
 

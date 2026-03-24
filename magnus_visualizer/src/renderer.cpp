@@ -8,9 +8,9 @@ Renderer::Renderer(Ball& b, Simulation& sim, Trail& t) : ball(b), simulation(sim
 }
 
 void Renderer::drawGround() {
-    glPushMatrix();
+    glPushMatrix();//saves opengl transform matrix onto the stack
     glDisable(GL_LIGHTING);
-    
+    //draws the green floor
     glColor3f(0.15f, 0.35f, 0.15f);
     glBegin(GL_QUADS);
     glVertex3f(-50.0f, 0.0f, -50.0f);
@@ -18,7 +18,8 @@ void Renderer::drawGround() {
     glVertex3f(50.0f, 0.0f, 50.0f);
     glVertex3f(-50.0f, 0.0f, 50.0f);
     glEnd();
-    
+
+    //draws the grid on the floor
     glColor3f(0.3f, 0.3f, 0.3f);
     glBegin(GL_LINES);
     for (int i = -50; i <= 50; i += 5) {
@@ -32,6 +33,7 @@ void Renderer::drawGround() {
     glEnable(GL_LIGHTING);
     glPopMatrix();
 }
+
 
 void Renderer::drawBall() {
     glPushMatrix();
@@ -57,6 +59,7 @@ void Renderer::drawBall() {
 }
 
 void Renderer::draw() {
+    //depth and lighting
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
@@ -69,6 +72,9 @@ void Renderer::draw() {
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
     glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+    
+
+    //draw the components
     
     drawGround();
     trail.draw();

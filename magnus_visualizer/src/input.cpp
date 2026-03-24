@@ -31,5 +31,6 @@ void Input::launch() {
 
 void Input::reset() {
     trail.clear();
-    simulation.reset();
+    glm::vec3 startPos(startPosX, startPosY, startPosZ);
+    simulation.resetToPosition(startPos);
 }

@@ -16,9 +16,10 @@ public:
     Ball();
 
     void reset();
+    void resetToPosition(const glm::vec3& startPosition);
+
     void updateRotation(float dt);
 
-    glm::vec3 getSpinDirection() const;
     float getSpinMagnitude() const;
     
     void copyFrom(const Ball& other);
